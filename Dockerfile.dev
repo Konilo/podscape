@@ -1,14 +1,16 @@
 FROM python:3.12
 
-# Include the (future) directory of the Poetry executable to the PATH
-ENV PATH="/opt/poetry/bin:$PATH"
-
 # Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python -
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python -
 
-# Copy the poetry.lock and pyproject.toml
-COPY ./poetry.lock /app/poetry.lock
+# Include the directories where the Poetry executable might reside in the PATH env var
+ENV PATH="/root/.local/bin:/opt/poetry/bin:$PATH"
+
+# Copy the dependencies file
+# In the case of a new project without a pyproject.toml file, copy and edit a pyproject.toml from an existing project
 COPY ./pyproject.toml /app/pyproject.toml
+
+# Set the working directory
 WORKDIR /app
 
 # Install the dependencies
@@ -16,5 +18,3 @@ RUN poetry config virtualenvs.create false && poetry lock && poetry install
 
 # Copy the repo
 COPY . /app
-
-# RUN cp -r /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages-copy

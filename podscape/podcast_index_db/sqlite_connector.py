@@ -33,17 +33,15 @@ class SqliteConnector:
 
     def query(self, query: str, output_class: str = "polars"):
         self.connect()
+        logger.info(f"Executing query")
         cursor = self.con.cursor()
         cursor.execute(query)
         rows = cursor.fetchall()
         column_names = [description[0] for description in cursor.description]
         self.close()
+        logger.info(f"Query executed successfully")
 
         if output_class == "polars":
             return pl.DataFrame(rows, schema=column_names)
         else:
             raise ValueError(f"Unsupported output class: {output_class}")
-
-# sqliteConnector = SqliteConnector("podscape/podcast_index_db/podcastindex_feeds.db")
-# df = sqliteConnector.query("SELECT title FROM podcasts limit 3")
-# sqliteConnector.query("SELECT count(*) FROM podcasts")
