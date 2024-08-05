@@ -2,6 +2,7 @@ import streamlit as st
 from utils.sqlite_connector import SqliteConnector
 from utils.utils import get_podcast_details, get_podcast_cover, get_podcast_creations_over_time
 
+TIME_UNITS = ['day', 'week', 'month', 'semester', 'year']
 
 # Setup
 db_file_path = "podscape/podcast_index_db/data/podcastindex_feeds.db"
@@ -15,8 +16,11 @@ st.sidebar.header('Filters')
 
 def text_input(label, default_value):
     return st.sidebar.text_input(label, default_value)
-
 podcast_name = text_input('Podcast name', 'Today, Explained')
+
+def selectbox(label, options, default_index=0):
+    return st.sidebar.selectbox(label, options, default_index)
+time_unit = selectbox('Time unit', TIME_UNITS, 3)
 
 # Body
 ## Podcast details
@@ -32,5 +36,5 @@ else:
 
 ## N podcast creations over time
 st.subheader('Podcasts created over time')
-fig = get_podcast_creations_over_time(sqlite_connector)
+fig = get_podcast_creations_over_time(sqlite_connector, time_unit)
 st.plotly_chart(fig)

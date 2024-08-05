@@ -44,7 +44,7 @@ class SqliteConnector:
         if output_class == "polars":
             df = pl.DataFrame(rows, schema=column_names)
             if infer_date_cols:
-                date_substrings = ["date", "week", "month", "semester", "year"]
+                date_substrings = ["date", "day", "week", "month", "semester", "year"]
                 for col_name in column_names:
                     if any(substring in col_name.lower() for substring in date_substrings):
                         df = df.with_columns(pl.col(col_name).cast(pl.Date))

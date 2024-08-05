@@ -36,17 +36,59 @@ def get_podcast_cover(db_connector, title):
     """
     return db_connector.query(sql)['imageUrl'][0]
 
-def get_podcast_creations_over_time(db_connector):
-    sql = f"""
-    SELECT
-        DATE(strftime(
-            '%Y-%m',
-            DATE(oldestItemPubdate, 'unixepoch')
-        ) || '-01') AS Month,
-        COUNT(*) AS "# podcasts created"
-    FROM podcasts
-    WHERE oldestItemPubdate IS NOT NULL
-    GROUP BY 1
-    """
+def get_podcast_creations_over_time(db_connector, time_unit):
+    time_unit_formats = {
+        'day': '%Y-%m-%d',
+        'week': None,
+        'month': '%Y-%m-01',
+        'semester': None,
+        'year': '%Y-01-01'
+    }
+    
+    if time_unit not in time_unit_formats:
+        raise ValueError(f"Invalid time_unit: {time_unit}. Must be one of {list(time_unit_formats.keys())}")
+
+    if time_unit == 'semester':
+        sql = """
+        SELECT
+            CASE
+                WHEN strftime('%m', DATE(oldestItemPubdate, 'unixepoch')) BETWEEN '01' AND '06' THEN strftime('%Y-01-01', DATE(oldestItemPubdate, 'unixepoch'))
+                ELSE strftime('%Y-07-01', DATE(oldestItemPubdate, 'unixepoch'))
+            END AS Semester,
+            COUNT(*) AS "# podcasts created"
+        FROM podcasts
+        WHERE oldestItemPubdate IS NOT NULL
+        GROUP BY 1
+        """
+    elif time_unit == 'week':
+        sql = """
+        SELECT
+            DATE(
+                DATE(oldestItemPubdate, 'unixepoch'), '-' ||
+                CASE strftime('%w', DATE(oldestItemPubdate, 'unixepoch'))
+                    WHEN '0' THEN 6
+                    ELSE strftime('%w', DATE(oldestItemPubdate, 'unixepoch')) - 1
+                END || ' days'
+            ) AS Week,
+            COUNT(*) AS "# podcasts created"
+        FROM podcasts
+        WHERE oldestItemPubdate IS NOT NULL
+        GROUP BY 1
+        """
+    else:
+        strftime_format = time_unit_formats[time_unit]
+        sql = f"""
+        SELECT
+            DATE(strftime(
+                '{strftime_format}',
+                DATE(oldestItemPubdate, 'unixepoch')
+            )) AS {time_unit.capitalize()},
+            COUNT(*) AS "# podcasts created"
+        FROM podcasts
+        WHERE oldestItemPubdate IS NOT NULL
+        GROUP BY 1
+        """
+
     df = db_connector.query(sql)
-    return px.line(df, x='Month', y='# podcasts created', title='Podcasts created over time')
+
+    return px.line(df, x=time_unit.capitalize(), y='# podcasts created', title='Podcasts created over time')
