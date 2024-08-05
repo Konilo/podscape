@@ -1,16 +1,19 @@
 import plotly.express as px
+import feedparser as fp
+from datetime import datetime
+import polars as pl
 
 
 def get_podcast_details(db_connector, title):
     sql = f"""
     SELECT
-        title, url, link, language,
+        title, link, language,
         DATE(newestItemPubdate, 'unixepoch') as newestItemPubdate,
         DATE(oldestItemPubdate, 'unixepoch') as oldestItemPubdate,
-        episodeCount, host, description,
-        contentType, itunesId, originalUrl,
+        episodeCount,
+        host,
         itunesAuthor, itunesOwnerName,
-        explicit, itunesType, generator,
+        generator,
         TRIM(
             COALESCE(category1 || ', ', '') ||
             COALESCE(category2 || ', ', '') ||
@@ -22,11 +25,13 @@ def get_podcast_details(db_connector, title):
             COALESCE(category8 || ', ', '') ||
             COALESCE(category9 || ', ', '') ||
             COALESCE(category10, '')
-        , ', ') as categories
+        , ', ') as categories,
+        url
     FROM podcasts
     where title = '{title}'
     """
     return db_connector.query(sql)
+
 
 def get_podcast_cover(db_connector, title):
     sql = f"""
@@ -34,21 +39,22 @@ def get_podcast_cover(db_connector, title):
     FROM podcasts
     where title = '{title}'
     """
-    return db_connector.query(sql)['imageUrl'][0]
+    return db_connector.query(sql)["imageUrl"][0]
+
 
 def get_podcast_creations_over_time(db_connector, time_unit):
     time_unit_formats = {
-        'day': '%Y-%m-%d',
-        'week': None,
-        'month': '%Y-%m-01',
-        'semester': None,
-        'year': '%Y-01-01'
+        "day": "%Y-%m-%d",
+        "week": None,
+        "month": "%Y-%m-01",
+        "semester": None,
+        "year": "%Y-01-01"
     }
-    
+
     if time_unit not in time_unit_formats:
         raise ValueError(f"Invalid time_unit: {time_unit}. Must be one of {list(time_unit_formats.keys())}")
 
-    if time_unit == 'semester':
+    if time_unit == "semester":
         sql = """
         SELECT
             CASE
@@ -60,7 +66,7 @@ def get_podcast_creations_over_time(db_connector, time_unit):
         WHERE oldestItemPubdate IS NOT NULL
         GROUP BY 1
         """
-    elif time_unit == 'week':
+    elif time_unit == "week":
         sql = """
         SELECT
             DATE(
@@ -91,4 +97,35 @@ def get_podcast_creations_over_time(db_connector, time_unit):
 
     df = db_connector.query(sql)
 
-    return px.line(df, x=time_unit.capitalize(), y='# podcasts created', title='Podcasts created over time')
+    return px.line(
+        df,
+        x=time_unit.capitalize(),
+        y="# podcasts created",
+        title="Podcasts created over time",
+        markers=False if (time_unit in ["day", "week", "month"]) else True,
+    )
+
+
+def parse_date(date_str):
+    formats = [
+        '%a, %d %b %Y %H:%M:%S %Z',
+        '%a, %d %b %Y %H:%M:%S %z',
+    ]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    return "Parsing error"
+
+
+def get_episode_infos(url):
+    feed = fp.parse(url)
+
+    df = pl.DataFrame({
+        "title": [entry["title"] for entry in feed["entries"]],
+        "date": [parse_date(entry["published"]) for entry in feed["entries"]],
+        "duration": [entry["itunes_duration"] for entry in feed["entries"]],
+    })
+
+    return df

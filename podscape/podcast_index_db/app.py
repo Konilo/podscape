@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.sqlite_connector import SqliteConnector
-from utils.utils import get_podcast_details, get_podcast_cover, get_podcast_creations_over_time
+from utils.utils import get_podcast_details, get_podcast_cover, get_podcast_creations_over_time, get_episode_infos
 
 TIME_UNITS = ['day', 'week', 'month', 'semester', 'year']
 
@@ -33,6 +33,10 @@ else:
         cover_url = get_podcast_cover(sqlite_connector, podcast_name)
         st.image(cover_url, width=200)
     st.dataframe(df)
+    if df.shape[0] == 1:
+        # TODO use podcast_name instead of df['url'][0]
+        ep_infos = get_episode_infos(df['url'][0])
+        st.dataframe(ep_infos)
 
 ## N podcast creations over time
 st.subheader('Podcasts created over time')
