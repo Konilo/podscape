@@ -45,3 +45,12 @@ class SqliteConnector:
             return pl.DataFrame(rows, schema=column_names)
         else:
             raise ValueError(f"Unsupported output class: {output_class}")
+    
+    # def create_index(self, table_name: str, column_name: str):
+    #     self.connect()
+    #     logger.info(f"Creating index on table {table_name} for column {column_name}")
+    #     cursor = self.con.cursor()
+    #     cursor.execute(f"CREATE INDEX {table_name}_{column_name}_index ON {table_name} ({column_name})")
+    #     self.con.commit()
+    #     logger.info(f"Index created")
+    #     self.close()

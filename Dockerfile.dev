@@ -6,6 +6,9 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python -
 # Include the directories where the Poetry executable might reside in the PATH env var
 ENV PATH="/root/.local/bin:/opt/poetry/bin:$PATH"
 
+# Install sqlite3
+RUN apt-get update && apt-get install --yes sqlite3
+
 # Copy the dependencies file
 # In the case of a new project without a pyproject.toml file, copy and edit a pyproject.toml from an existing project
 COPY ./pyproject.toml /app/pyproject.toml
