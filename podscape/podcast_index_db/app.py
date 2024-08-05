@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.sqlite_connector import SqliteConnector
-from utils.utils import get_podcast_details, get_podcast_cover
+from utils.utils import get_podcast_details, get_podcast_cover, get_podcast_creations_over_time
 
 
 # Setup
@@ -8,19 +8,15 @@ db_file_path = "podscape/podcast_index_db/data/podcastindex_feeds.db"
 sqlite_connector = SqliteConnector(db_file_path)
 
 # Page title
-st.write("""
-# Podscape
-""")
+st.write("# Podscape")
 
 # Sidebar
-st.sidebar.header('User Input Features')
+st.sidebar.header('Filters')
 
-# Collect user input
-def user_input_features():
-    podcast_name = st.sidebar.text_input('Podcast title', 'Today, Explained')
-    return podcast_name
+def text_input(label, default_value):
+    return st.sidebar.text_input(label, default_value)
 
-podcast_name = user_input_features()
+podcast_name = text_input('Podcast name', 'Today, Explained')
 
 # Body
 ## Podcast details
@@ -33,3 +29,8 @@ else:
         cover_url = get_podcast_cover(sqlite_connector, podcast_name)
         st.image(cover_url, width=200)
     st.dataframe(df)
+
+## N podcast creations over time
+st.subheader('Podcasts created over time')
+fig = get_podcast_creations_over_time(sqlite_connector)
+st.plotly_chart(fig)

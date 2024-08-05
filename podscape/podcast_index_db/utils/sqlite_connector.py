@@ -31,26 +31,24 @@ class SqliteConnector:
             self.con = None
             logger.info("Connection to the DB closed")
 
-    def query(self, query: str, output_class: str = "polars"):
+    def query(self, sql: str, output_class: str = "polars", infer_date_cols: bool = True):
         self.connect()
-        logger.info(f"Executing query")
+        logger.info(f"Querying the DB")
         cursor = self.con.cursor()
-        cursor.execute(query)
+        cursor.execute(sql)
         rows = cursor.fetchall()
         column_names = [description[0] for description in cursor.description]
+        logger.info(f"Querying completed")
         self.close()
-        logger.info(f"Query executed successfully")
 
         if output_class == "polars":
-            return pl.DataFrame(rows, schema=column_names)
+            df = pl.DataFrame(rows, schema=column_names)
+            if infer_date_cols:
+                date_substrings = ["date", "week", "month", "semester", "year"]
+                for col_name in column_names:
+                    if any(substring in col_name.lower() for substring in date_substrings):
+                        df = df.with_columns(pl.col(col_name).cast(pl.Date))
+            return df
         else:
             raise ValueError(f"Unsupported output class: {output_class}")
     
-    # def create_index(self, table_name: str, column_name: str):
-    #     self.connect()
-    #     logger.info(f"Creating index on table {table_name} for column {column_name}")
-    #     cursor = self.con.cursor()
-    #     cursor.execute(f"CREATE INDEX {table_name}_{column_name}_index ON {table_name} ({column_name})")
-    #     self.con.commit()
-    #     logger.info(f"Index created")
-    #     self.close()
