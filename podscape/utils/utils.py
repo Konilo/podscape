@@ -29,7 +29,7 @@ def get_podcast_details(db_connector, id):
         , ', ') as categories,
         url
     FROM podcasts
-    where id = {id}
+    WHERE id = {id}
     """
     return db_connector.query(sql)
 
@@ -38,7 +38,7 @@ def get_podcast_cover(db_connector, id):
     sql = f"""
     SELECT imageUrl
     FROM podcasts
-    where id = {id}
+    WHERE id = {id}
     """
     return db_connector.query(sql)["imageUrl"][0]
 
@@ -137,10 +137,11 @@ def get_episode_infos(url):
 
 
 def get_ids_from_title(db_connector, title):
+    simplified_title = title.lower().replace(" ", "").replace(",", "")
     sql = f"""
     SELECT id
     FROM podcasts
-    where title = '{title}'
+    WHERE replace(replace(lower(title), ' ', ''), ',', '') LIKE '%{simplified_title}%'
     """
     return db_connector.query(sql, "list")
 
@@ -149,7 +150,7 @@ def get_podcast_title(db_connector, id):
     sql = f"""
     SELECT title
     FROM podcasts
-    where id = {id}
+    WHERE id = {id}
     """
     return db_connector.query(sql)["title"][0]
 

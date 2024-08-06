@@ -35,8 +35,7 @@ details_tab, landscape_tab = st.tabs(["Podcast details", "Podcast landscape"])
 with details_tab:
     st.subheader("Podcast Details")
     
-    # podcast_name = text_input("Podcast name", "Today, Explained")
-    podcast_name = text_input("Podcast name", "FloodCast")
+    podcast_name = text_input("Podcast name", "Today, Explained")
     matching_podcast_ids = get_ids_from_title(sqlite_connector, podcast_name)
 
     if len(matching_podcast_ids) == 0:
@@ -47,7 +46,10 @@ with details_tab:
             podcast_options = get_podcast_options(sqlite_connector, matching_podcast_ids)
             
             for row in podcast_options.iter_rows(named=True):
-                st.image(row["cover_url"], width=100, caption=row["title_for_selectbox"])
+                if row["cover_url"] != "":
+                    st.image(row["cover_url"], width=100, caption=row["title_for_selectbox"])
+                else:
+                    st.write(f"{row["title_for_selectbox"]} (no cover image available)")
 
             selected_podcast_index = selectbox(
                 "Select a podcast",
