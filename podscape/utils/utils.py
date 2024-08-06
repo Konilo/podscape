@@ -5,7 +5,7 @@ import polars as pl
 import streamlit as st
 
 
-def get_podcast_details(db_connector, title):
+def get_podcast_details(db_connector, id):
     sql = f"""
     SELECT
         title, link, language,
@@ -29,16 +29,16 @@ def get_podcast_details(db_connector, title):
         , ', ') as categories,
         url
     FROM podcasts
-    where title = '{title}'
+    where id = {id}
     """
     return db_connector.query(sql)
 
 
-def get_podcast_cover(db_connector, title):
+def get_podcast_cover(db_connector, id):
     sql = f"""
     SELECT imageUrl
     FROM podcasts
-    where title = '{title}'
+    where id = {id}
     """
     return db_connector.query(sql)["imageUrl"][0]
 
@@ -51,7 +51,7 @@ def get_podcast_creations_over_time(_db_connector, time_unit):
         "week": None,
         "month": "%Y-%m-01",
         "semester": None,
-        "year": "%Y-01-01"
+        "year": "%Y-01-01",
     }
 
     if time_unit not in time_unit_formats:
@@ -111,8 +111,8 @@ def get_podcast_creations_over_time(_db_connector, time_unit):
 
 def parse_date(date_str):
     formats = [
-        '%a, %d %b %Y %H:%M:%S %Z',
-        '%a, %d %b %Y %H:%M:%S %z',
+        "%a, %d %b %Y %H:%M:%S %Z",
+        "%a, %d %b %Y %H:%M:%S %z",
     ]
     for fmt in formats:
         try:
@@ -125,10 +125,51 @@ def parse_date(date_str):
 def get_episode_infos(url):
     feed = fp.parse(url)
 
-    df = pl.DataFrame({
-        "title": [entry["title"] for entry in feed["entries"]],
-        "date": [parse_date(entry["published"]) for entry in feed["entries"]],
-        "duration": [entry["itunes_duration"] for entry in feed["entries"]],
-    })
+    df = pl.DataFrame(
+        {
+            "title": [entry["title"] for entry in feed["entries"]],
+            "date": [parse_date(entry["published"]) for entry in feed["entries"]],
+            "duration": [entry["itunes_duration"] for entry in feed["entries"]],
+        }
+    )
 
     return df
+
+
+def get_ids_from_title(db_connector, title):
+    sql = f"""
+    SELECT id
+    FROM podcasts
+    where title = '{title}'
+    """
+    return db_connector.query(sql, "list")
+
+
+def get_podcast_title(db_connector, id):
+    sql = f"""
+    SELECT title
+    FROM podcasts
+    where id = {id}
+    """
+    return db_connector.query(sql)["title"][0]
+
+
+def get_podcast_options(sqlite_connector, matching_podcast_ids):
+    podcast_options = pl.DataFrame(
+        {"id": [], "title": [], "cover_url": [], "title_for_selectbox": []},
+        schema={
+            "id": pl.Int64,
+            "title": pl.Utf8,
+            "cover_url": pl.Utf8,
+            "title_for_selectbox": pl.Utf8,
+        },
+    )
+    for index, podcast_id in enumerate(matching_podcast_ids):
+        cover_url = get_podcast_cover(sqlite_connector, podcast_id)
+        title = get_podcast_title(sqlite_connector, podcast_id)
+        title_for_selectbox = f"{title} (match # {index + 1})"
+        podcast_options = podcast_options.vstack(
+            pl.DataFrame({"id": [podcast_id], "title": [title], "cover_url": [cover_url], "title_for_selectbox": [title_for_selectbox]})
+        )
+
+    return podcast_options

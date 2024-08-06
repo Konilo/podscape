@@ -49,6 +49,11 @@ class SqliteConnector:
                     if any(substring in col_name.lower() for substring in date_substrings):
                         df = df.with_columns(pl.col(col_name).cast(pl.Date))
             return df
+        elif output_class == "list":
+            if len(column_names) == 1:
+                return [row[0] for row in rows]
+            else:
+                raise ValueError("Output class 'list' is only supported for single-column queries")
         else:
             raise ValueError(f"Unsupported output class: {output_class}")
     
