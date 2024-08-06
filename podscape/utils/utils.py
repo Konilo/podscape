@@ -2,6 +2,7 @@ import plotly.express as px
 import feedparser as fp
 from datetime import datetime
 import polars as pl
+import streamlit as st
 
 
 def get_podcast_details(db_connector, title):
@@ -42,7 +43,9 @@ def get_podcast_cover(db_connector, title):
     return db_connector.query(sql)["imageUrl"][0]
 
 
-def get_podcast_creations_over_time(db_connector, time_unit):
+@st.cache_data
+def get_podcast_creations_over_time(_db_connector, time_unit):
+    # The underscore in _db_connector tells streamlit not to hash this object (which can't be hashed)
     time_unit_formats = {
         "day": "%Y-%m-%d",
         "week": None,
@@ -95,7 +98,7 @@ def get_podcast_creations_over_time(db_connector, time_unit):
         GROUP BY 1
         """
 
-    df = db_connector.query(sql)
+    df = _db_connector.query(sql)
 
     return px.line(
         df,
