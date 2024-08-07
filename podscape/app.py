@@ -14,10 +14,16 @@ TIME_UNITS = ["day", "week", "month", "semester", "year"]
 MAX_PODCAST_OPTIONS = 15
 
 # Setup
+st.set_page_config(
+    page_title="Podscape",
+    page_icon=":loud_sound:",
+)
 db_file_path = "podscape/data/podcastindex_feeds.db"
 sqlite_connector = SqliteConnector(db_file_path)
 
+
 # Page title
+
 st.title(":loud_sound: :blue[Podscape]")
 
 # Body
