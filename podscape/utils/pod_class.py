@@ -1,10 +1,14 @@
 import logging
 from datetime import datetime
 import re
+import urllib.request as urlreq
+from urllib.error import URLError
 
 import polars as pl
 import feedparser as fp
 
+
+COVER_PLACEHOLDER_PATH = "podscape/www/cover_placeholder.png"
 
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
@@ -31,12 +35,27 @@ class PodClass:
         """
         return self.db_connector.query(sql)
     
+
     def get_info(self, column_name):
         if column_name == "categories":
             # join categories 1 to 10
             return ", ".join([
                 self.all_infos[f"category{i}"][0] for i in range(1, 11) if self.all_infos[f"category{i}"][0]
             ])
+
+        elif column_name == "imageUrl":
+            cover_url = self.all_infos[column_name][0]
+            if not cover_url or cover_url == "":
+                return COVER_PLACEHOLDER_PATH
+            try:
+                code = urlreq.urlopen(cover_url).getcode()
+            except URLError:
+                return COVER_PLACEHOLDER_PATH
+            if code != 200:
+                return COVER_PLACEHOLDER_PATH
+            else:
+                return cover_url
+
         else:
             return self.all_infos[column_name][0]
     
@@ -62,7 +81,8 @@ class PodClass:
             elif re.match(r"^\d{2}:\d{2}:\d{2}$", duration):
                 return round(int(duration.split(":")[0])*60 + int(duration.split(":")[1]) + int(duration.split(":")[2])/60)
         return f"{duration} (parsing error)"
-    
+
+
     def get_episode_infos(self):
         if not self.episode_infos:
             url = self.get_info("url")

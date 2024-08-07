@@ -42,13 +42,10 @@ with details_tab:
                     st.write(f"{len(matching_podcast_ids)} podcasts found, only showing the first {MAX_PODCAST_OPTIONS}. Please refine your search or refine your search.")
                 podcast_options = get_podcast_options(sqlite_connector, matching_podcast_ids[:MAX_PODCAST_OPTIONS])
                 
-                columns = st.columns(3, gap="medium")
+                columns = st.columns(3)
                 index = 0
                 for row in podcast_options.iter_rows(named=True):
-                    if row["cover_url"] in [None, "", "0"]:
-                        columns[index].write(f"{row["title_for_selectbox"]} (no cover image available)")
-                    else:
-                        columns[index].image(row["cover_url"], width=100, caption=row["title_for_selectbox"])
+                    columns[index].image(row["cover_url"], width=100, caption=row["title_for_selectbox"])
                     if index < 2:
                         index += 1
                     else:
