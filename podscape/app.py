@@ -1,14 +1,14 @@
 import streamlit as st
+import polars as pl
+
 from utils.sqlite_connector import SqliteConnector
 from utils.utils import (
-    get_podcast_details,
-    get_podcast_cover,
     get_podcast_creations_over_time,
-    get_episode_infos,
-    get_ids_from_title,
+    get_podcast_ids_from_title,
     get_podcast_options,
 )
-import polars as pl
+from utils.pod_class import PodClass
+
 
 TIME_UNITS = ["day", "week", "month", "semester", "year"]
 
@@ -17,12 +17,12 @@ db_file_path = "podscape/data/podcastindex_feeds.db"
 sqlite_connector = SqliteConnector(db_file_path)
 
 
-def text_input(label, default_value):
-    return st.text_input(label, default_value)
+# def text_input(label, default_value):
+#     return st.text_input(label, default_value)
 
 
-def selectbox(label, options, default_index=0, label_visibility="visible"):
-    return st.selectbox(label, options, default_index, label_visibility = label_visibility)
+# def selectbox(label, options, default_index=0, label_visibility="visible"):
+#     return st.selectbox(label, options, default_index, label_visibility = label_visibility)
 
 
 # Page title
@@ -33,15 +33,15 @@ details_tab, landscape_tab = st.tabs(["Podcast details", "Podcast landscape"])
 
 ## Podcast details tab
 with details_tab:
-    st.subheader("Podcast Details")
-    
     with st.expander("Search for a podcast", expanded=True):
-        podcast_name = text_input("Podcast name", "Today, Explained")
-        matching_podcast_ids = get_ids_from_title(sqlite_connector, podcast_name)
+        podcast_name = st.text_input("Podcast name", "Today, Explained")
+        matching_podcast_ids = get_podcast_ids_from_title(sqlite_connector, podcast_name)
 
+        # No podcast found
         if len(matching_podcast_ids) == 0:
             st.write("Podcast not found")
         else:
+            # Multiple podcasts found
             if len(matching_podcast_ids) > 1:
                 st.write("Multiple podcasts found. Please select the correct one.")
                 podcast_options = get_podcast_options(sqlite_connector, matching_podcast_ids)
@@ -58,7 +58,7 @@ with details_tab:
                     else:
                         index = 0
 
-                selected_podcast_index = selectbox(
+                selected_podcast_index = st.selectbox(
                     "Select a podcast",
                     podcast_options["title_for_selectbox"].to_list(),
                     label_visibility="collapsed",
@@ -67,11 +67,12 @@ with details_tab:
                     pl.col("title_for_selectbox") == selected_podcast_index
                 )["id"].to_list()
 
-    cover_url = get_podcast_cover(sqlite_connector, matching_podcast_ids[0])
+    podcast_object = PodClass(sqlite_connector, matching_podcast_ids[0])
+    cover_url = podcast_object.get_info("imageUrl")
     st.image(cover_url, width=200)
-    df = get_podcast_details(sqlite_connector, matching_podcast_ids[0])
+    df = podcast_object.get_details()
     st.dataframe(df)
-    ep_infos = get_episode_infos(df["url"][0])
+    ep_infos = podcast_object.get_episode_infos()
     st.dataframe(ep_infos)
 
 ## Podcast landscape tab
@@ -79,7 +80,7 @@ with landscape_tab:
     st.subheader("Podcasts created over time")
 
     with st.expander("Select a time unit", expanded=True):
-        time_unit = selectbox("Time unit", TIME_UNITS, 3)
+        time_unit = st.selectbox("Time unit", TIME_UNITS, 3)
     
     fig = get_podcast_creations_over_time(sqlite_connector, time_unit)
     st.plotly_chart(fig)
