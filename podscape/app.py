@@ -16,15 +16,6 @@ TIME_UNITS = ["day", "week", "month", "semester", "year"]
 db_file_path = "podscape/data/podcastindex_feeds.db"
 sqlite_connector = SqliteConnector(db_file_path)
 
-
-# def text_input(label, default_value):
-#     return st.text_input(label, default_value)
-
-
-# def selectbox(label, options, default_index=0, label_visibility="visible"):
-#     return st.selectbox(label, options, default_index, label_visibility = label_visibility)
-
-
 # Page title
 st.write("# Podscape")
 
