@@ -11,22 +11,24 @@ from utils.pod_class import PodClass
 
 
 TIME_UNITS = ["day", "week", "month", "semester", "year"]
+MAX_PODCAST_OPTIONS = 15
 
 # Setup
 db_file_path = "podscape/data/podcastindex_feeds.db"
 sqlite_connector = SqliteConnector(db_file_path)
 
 # Page title
-st.write("# Podscape")
+st.title(":loud_sound: :blue[Podscape]")
 
 # Body
-details_tab, landscape_tab = st.tabs(["Podcast details", "Podcast landscape"])
+details_tab, landscape_tab = st.tabs([":mag: Podcast details", ":bar_chart: Podcast landscape"])
 
 ## Podcast details tab
 with details_tab:
     with st.expander("Search for a podcast", expanded=True):
-        podcast_name = st.text_input("Podcast name", "Today, Explained")
-        matching_podcast_ids = get_podcast_ids_from_title(sqlite_connector, podcast_name)
+        podcast_title = st.text_input("Podcast title", "Today, Explained")
+        exact_match = st.checkbox("Exact title match", value=True)
+        matching_podcast_ids = get_podcast_ids_from_title(sqlite_connector, podcast_title, exact_match)
 
         # No podcast found
         if len(matching_podcast_ids) == 0:
@@ -34,16 +36,19 @@ with details_tab:
         else:
             # Multiple podcasts found
             if len(matching_podcast_ids) > 1:
-                st.write("Multiple podcasts found. Please select the correct one.")
-                podcast_options = get_podcast_options(sqlite_connector, matching_podcast_ids)
+                if len(matching_podcast_ids) < MAX_PODCAST_OPTIONS + 1:
+                    st.write("Multiple podcasts found. Please select the correct one.")
+                else:
+                    st.write(f"{len(matching_podcast_ids)} podcasts found, only showing the first {MAX_PODCAST_OPTIONS}. Please refine your search or refine your search.")
+                podcast_options = get_podcast_options(sqlite_connector, matching_podcast_ids[:MAX_PODCAST_OPTIONS])
                 
-                columns = st.columns(3)
+                columns = st.columns(3, gap="medium")
                 index = 0
                 for row in podcast_options.iter_rows(named=True):
-                    if row["cover_url"] != "":
-                        columns[index].image(row["cover_url"], width=100, caption=row["title_for_selectbox"])
-                    else:
+                    if row["cover_url"] in [None, "", "0"]:
                         columns[index].write(f"{row["title_for_selectbox"]} (no cover image available)")
+                    else:
+                        columns[index].image(row["cover_url"], width=100, caption=row["title_for_selectbox"])
                     if index < 2:
                         index += 1
                     else:

@@ -72,13 +72,17 @@ def get_podcast_creations_over_time(_db_connector, time_unit):
 
 
 @st.cache_data
-def get_podcast_ids_from_title(_db_connector, title):
+def get_podcast_ids_from_title(_db_connector, title, exact_match):
     # Underscore in _db_connector: idem
-    simplified_title = title.lower().replace(" ", "").replace(",", "")
+    if exact_match:
+        where_clause = f"title = '{title}'"
+    else:
+        simplified_title = title.lower().replace(" ", "").replace(",", "")
+        where_clause = f"replace(replace(lower(title), ' ', ''), ',', '') LIKE '%{simplified_title}%'"
     sql = f"""
     SELECT id
     FROM podcasts
-    WHERE replace(replace(lower(title), ' ', ''), ',', '') LIKE '%{simplified_title}%'
+    WHERE {where_clause}
     """
     return _db_connector.query(sql, "list")
 
