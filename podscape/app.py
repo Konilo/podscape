@@ -58,12 +58,14 @@ with details_tab:
                     pl.col("title_for_selectbox") == selected_podcast_index
                 )["id"].to_list()
 
+    ### Overview
+    st.subheader("Overview")
     podcast_object = PodClass(sqlite_connector, matching_podcast_ids[0])
-    col1, col2 = st.columns([.3, .7], vertical_alignment="center")
-    with col1:
+    cover_col, infos_col = st.columns([.3, .7], vertical_alignment="center")
+    with cover_col:
         cover_url = podcast_object.get_info("imageUrl")
         st.image(cover_url, width=200)
-    with col2:
+    with infos_col:
         with st.container(border=True):
             st.write(f"**Title:** {podcast_object.get_info('title')}")
             st.write(f"**Author:** {podcast_object.get_info('itunesAuthor')}")
@@ -71,12 +73,23 @@ with details_tab:
             st.write(f"**Language:** {podcast_object.get_info('language')}")
             st.write(f"**Categories:** {podcast_object.get_info('categories')}")
             st.write(f"**URL:** {podcast_object.get_info('url')}")
+    
+    ### Episodes
+    st.subheader("Episodes")
     ep_infos = podcast_object.get_episode_infos()
-    st.dataframe(ep_infos, width=705, hide_index=True)
+    st.dataframe(
+        ep_infos,
+        width=705,
+        hide_index=True,
+        column_config={
+            "date": st.column_config.DateColumn(),
+            "duration": st.column_config.NumberColumn(format="%d min"),
+        }
+    )
 
 ## Podcast landscape tab
 with landscape_tab:
-    st.subheader("Podcasts created over time")
+    st.subheader("Podcast creations")
 
     with st.expander("Select a time unit", expanded=True):
         time_unit = st.selectbox("Time unit", TIME_UNITS, 3)

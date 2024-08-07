@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import re
 
 import polars as pl
 import feedparser as fp
@@ -43,7 +44,6 @@ class PodClass:
     @staticmethod
     def _parse_date(date_str):
         formats = [
-            "%a, %d %b %Y %H:%M:%S %Z",
             "%a, %d %b %Y %H:%M:%S %z",
         ]
         for fmt in formats:
@@ -51,9 +51,18 @@ class PodClass:
                 return datetime.strptime(date_str, fmt).date()
             except ValueError:
                 continue
-        return "Parsing error"
+        return f"{date_str} (parsing error)"
 
 
+    @staticmethod
+    def _format_duration(duration):
+        if isinstance(duration, str):
+            if re.match(r"^\d+$", duration):
+                return round(int(duration)/60)
+            elif re.match(r"^\d{2}:\d{2}:\d{2}$", duration):
+                return round(int(duration.split(":")[0])*60 + int(duration.split(":")[1]) + int(duration.split(":")[2])/60)
+        return f"{duration} (parsing error)"
+    
     def get_episode_infos(self):
         if not self.episode_infos:
             url = self.get_info("url")
@@ -63,7 +72,7 @@ class PodClass:
                     "#": range(len(feed["entries"]), 0, -1),
                     "title": [entry["title"] for entry in feed["entries"]],
                     "date": [self._parse_date(entry["published"]) for entry in feed["entries"]],
-                    "duration": [entry["itunes_duration"] for entry in feed["entries"]],
+                    "duration": [self._format_duration(entry["itunes_duration"]) for entry in feed["entries"]],
                 }
             )
             self.episode_infos = df
