@@ -31,37 +31,13 @@ class PodClass:
         return self.db_connector.query(sql)
     
     def get_info(self, column_name):
-        return self.all_infos[column_name][0]
-    
-
-    def get_details(self):
-        if not self.details:
-            sql = f"""
-            SELECT
-                title, link, language,
-                DATE(newestItemPubdate, 'unixepoch') as newestItemPubdate,
-                DATE(oldestItemPubdate, 'unixepoch') as oldestItemPubdate,
-                episodeCount,
-                host,
-                itunesAuthor, itunesOwnerName,
-                generator,
-                TRIM(
-                    COALESCE(category1 || ', ', '') ||
-                    COALESCE(category2 || ', ', '') ||
-                    COALESCE(category3 || ', ', '') ||
-                    COALESCE(category4 || ', ', '') ||
-                    COALESCE(category5 || ', ', '') ||
-                    COALESCE(category6 || ', ', '') ||
-                    COALESCE(category7 || ', ', '') ||
-                    COALESCE(category8 || ', ', '') ||
-                    COALESCE(category9 || ', ', '') ||
-                    COALESCE(category10, '')
-                , ', ') as categories
-            FROM podcasts
-            WHERE id = {self.id}
-            """
-            self.details = self.db_connector.query(sql)
-        return self.details
+        if column_name == "categories":
+            # join categories 1 to 10
+            return ", ".join([
+                self.all_infos[f"category{i}"][0] for i in range(1, 11) if self.all_infos[f"category{i}"][0]
+            ])
+        else:
+            return self.all_infos[column_name][0]
     
 
     @staticmethod
@@ -84,6 +60,7 @@ class PodClass:
             feed = fp.parse(url)
             df = pl.DataFrame(
                 {
+                    "#": range(len(feed["entries"]), 0, -1),
                     "title": [entry["title"] for entry in feed["entries"]],
                     "date": [self._parse_date(entry["published"]) for entry in feed["entries"]],
                     "duration": [entry["itunes_duration"] for entry in feed["entries"]],

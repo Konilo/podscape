@@ -71,19 +71,21 @@ def get_podcast_creations_over_time(_db_connector, time_unit):
     )
 
 
-def get_podcast_ids_from_title(db_connector, title):
+@st.cache_data
+def get_podcast_ids_from_title(_db_connector, title):
+    # Underscore in _db_connector: idem
     simplified_title = title.lower().replace(" ", "").replace(",", "")
     sql = f"""
     SELECT id
     FROM podcasts
     WHERE replace(replace(lower(title), ' ', ''), ',', '') LIKE '%{simplified_title}%'
     """
-    return db_connector.query(sql, "list")
+    return _db_connector.query(sql, "list")
 
 
 @st.cache_data
-def get_podcast_options(_sqlite_connector, matching_podcast_ids):
-    # Underscore in _sqlite_connector: idem
+def get_podcast_options(_db_connector, matching_podcast_ids):
+    # Underscore in _db_connector: idem
     podcast_options = pl.DataFrame(
         {"id": [], "title": [], "cover_url": [], "title_for_selectbox": []},
         schema={
@@ -94,7 +96,7 @@ def get_podcast_options(_sqlite_connector, matching_podcast_ids):
         },
     )
     for index, podcast_id in enumerate(matching_podcast_ids):
-        pod_object = PodClass(_sqlite_connector, podcast_id)
+        pod_object = PodClass(_db_connector, podcast_id)
         cover_url = pod_object.get_info("imageUrl")
         title = pod_object.get_info("title")
         title_for_selectbox = f"{title} (match # {index + 1})"

@@ -59,12 +59,20 @@ with details_tab:
                 )["id"].to_list()
 
     podcast_object = PodClass(sqlite_connector, matching_podcast_ids[0])
-    cover_url = podcast_object.get_info("imageUrl")
-    st.image(cover_url, width=200)
-    df = podcast_object.get_details()
-    st.dataframe(df)
+    col1, col2 = st.columns([.3, .7], vertical_alignment="center")
+    with col1:
+        cover_url = podcast_object.get_info("imageUrl")
+        st.image(cover_url, width=200)
+    with col2:
+        with st.container(border=True):
+            st.write(f"**Title:** {podcast_object.get_info('title')}")
+            st.write(f"**Author:** {podcast_object.get_info('itunesAuthor')}")
+            st.write(f"**Link:** {podcast_object.get_info('link')}")
+            st.write(f"**Language:** {podcast_object.get_info('language')}")
+            st.write(f"**Categories:** {podcast_object.get_info('categories')}")
+            st.write(f"**URL:** {podcast_object.get_info('url')}")
     ep_infos = podcast_object.get_episode_infos()
-    st.dataframe(ep_infos)
+    st.dataframe(ep_infos, width=705, hide_index=True)
 
 ## Podcast landscape tab
 with landscape_tab:
