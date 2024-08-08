@@ -9,6 +9,8 @@ run-dev-env:
 
 etl-enrich:
 	# ETL the data
+	## Create data directory if it doesn't exist
+	@mkdir -p podscape/data
 	## Downloading the DB as a tgz file
 	@wget https://public.podcastindex.org/podcastindex_feeds.db.tgz \
 		--output-document=podscape/data/podcastindex_feeds.db.tgz

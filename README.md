@@ -1,20 +1,30 @@
 # Podscape
-## 
 
-## Running python interactively in the Docker container via VS Code
+An app to explore the podcasting landscape -- from details concerning a specific podcast to overall, multi-decade trends.
 
-- Add the following shortcut:
-```
-{
-    "key": "ctrl+enter",
-    "command": "python.execSelectionInTerminal",
-    "when": "editorTextFocus && !editorReadonly && editorLangId == 'python'"
-}
-```
+This app was made for learning purposes, with a deliberate focus on `docker`, `streamlit`, `sqlite3`, and `polars`.
+It sources its data from the [Podcast Index](https://podcastindex.org/) and directly from RSS feeds.
+
+
+## Development setup
+
+I propose a fully-dockerized development environment:
+
 - If you're under Windows: run `wsl` and start Docker Desktop.
 - Run `make run-dev-env`.
 - In the "Remote Explorer" tab (found in the Side Bar), find the Docker container, and select "Attach in Current Window".
-- Open the `app/` folder.
-- Extensions are not always mirrored from VS Code in the local OS to VS Code in the container. Install the extensions you want. The recommended python extension is mandatory.
-- Open a python file and set the interpreter as `/usr/local/bin/python`.
-- You're all set: use Ctrl+Enter to run python interactively, command-by-command in the Docker container using the dockerized python version and python libs. You can also use the VS Code "Run and Debug" features.
+- Open the `app/` folder, if that's not already where you are.
+- Extensions are not always mirrored from VS Code in the local OS to VS Code in the container. Reinstall the extensions you miss. The recommended python extension is mandatory.
+- Set the python interpreter as `/usr/local/bin/python`.
+- If it's the first time you set this up (or if you want to update the database): run `make etl-enrich` to fetch and prepare the database. This takes a while.
+- You're all set:
+  - Launch the app using `make run-app`.
+  - You can use the VS Code "Run and Debug" features.
+  - If you want to run python code interactively in the development environment, add the following shortcut:
+  ```
+  {
+      "key": "ctrl+enter",
+      "command": "python.execSelectionInTerminal",
+      "when": "editorTextFocus && !editorReadonly && editorLangId == 'python'"
+  }
+  ```
