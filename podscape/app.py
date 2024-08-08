@@ -1,11 +1,14 @@
 import streamlit as st
 import polars as pl
+from datetime import date
 
 from utils.sqlite_connector import SqliteConnector
 from utils.utils import (
     get_podcast_creations_over_time,
     get_podcast_ids_from_title,
     get_podcast_options,
+    get_podcasts_per_host_pie,
+    get_podcasts_per_host_time_bar,
 )
 from utils.pod_class import PodClass
 
@@ -45,9 +48,11 @@ with details_tab:
                 if len(matching_podcast_ids) < MAX_PODCAST_OPTIONS + 1:
                     st.write("Multiple podcasts found. Please select the correct one.")
                 else:
-                    st.write(f"{len(matching_podcast_ids)} podcasts found, only showing the first {MAX_PODCAST_OPTIONS}. Please refine your search or refine your search.")
+                    st.write(
+                        f"{len(matching_podcast_ids)} podcasts found, only showing the first {MAX_PODCAST_OPTIONS}. Please refine your search or refine your search."
+                    )
                 podcast_options = get_podcast_options(sqlite_connector, matching_podcast_ids[:MAX_PODCAST_OPTIONS])
-                
+
                 columns = st.columns(3)
                 index = 0
                 for row in podcast_options.iter_rows(named=True):
@@ -62,14 +67,12 @@ with details_tab:
                     podcast_options["title_for_selectbox"].to_list(),
                     label_visibility="collapsed",
                 )
-                matching_podcast_ids = podcast_options.filter(
-                    pl.col("title_for_selectbox") == selected_podcast_index
-                )["id"].to_list()
+                matching_podcast_ids = podcast_options.filter(pl.col("title_for_selectbox") == selected_podcast_index)["id"].to_list()
 
     ### Overview
     st.subheader("Overview")
     podcast_object = PodClass(sqlite_connector, matching_podcast_ids[0])
-    cover_col, infos_col = st.columns([.3, .7], vertical_alignment="center")
+    cover_col, infos_col = st.columns([0.3, 0.7], vertical_alignment="center")
     with cover_col:
         cover_url = podcast_object.get_info("imageUrl")
         st.image(cover_url, width=200)
@@ -77,11 +80,11 @@ with details_tab:
         with st.container(border=True):
             st.write(f"**Title:** {podcast_object.get_info('title')}")
             st.write(f"**Author:** {podcast_object.get_info('itunesAuthor')}")
-            st.write(f"**Link:** {podcast_object.get_info('link')}")
             st.write(f"**Language:** {podcast_object.get_info('language')}")
             st.write(f"**Categories:** {podcast_object.get_info('categories')}")
-            st.write(f"**URL:** {podcast_object.get_info('url')}")
-    
+            st.write(f"**Link:** {podcast_object.get_info('link')}")
+            st.write(f"**Feed:** {podcast_object.get_info('url')}")
+
     ### Episodes
     st.subheader("Episodes")
     ep_infos = podcast_object.get_episode_infos()
@@ -92,15 +95,25 @@ with details_tab:
         column_config={
             "date": st.column_config.DateColumn(),
             "duration": st.column_config.NumberColumn(format="%d min"),
-        }
+        },
     )
 
 ## Podcast landscape tab
 with landscape_tab:
+    ### Podcast creations
     st.subheader("Podcast creations")
+    with st.expander("Options", expanded=True):
+        time_unit_creations = st.selectbox("Time unit", TIME_UNITS, 4, key="time_unit_creations")
+    podcast_creations_over_time = get_podcast_creations_over_time(sqlite_connector, time_unit_creations)
+    st.plotly_chart(podcast_creations_over_time)
 
-    with st.expander("Select a time unit", expanded=True):
-        time_unit = st.selectbox("Time unit", TIME_UNITS, 3)
-    
-    fig = get_podcast_creations_over_time(sqlite_connector, time_unit)
-    st.plotly_chart(fig)
+    ### Podcasts per host
+    st.subheader("Hosting platforms")
+    with st.expander("Options", expanded=True):
+        time_unit_hosts = st.selectbox("Time unit", TIME_UNITS, 4, key="time_unit_hosts")
+        start_date = st.date_input("Start", value=date(2002, 10, 1))
+        end_date = st.date_input("End", value=date(2030, 12, 31))
+    podcasts_per_host_pie = get_podcasts_per_host_pie(sqlite_connector, start_date, end_date)
+    st.plotly_chart(podcasts_per_host_pie)
+    podcasts_per_host_time_bar = get_podcasts_per_host_time_bar(sqlite_connector, start_date, end_date, time_unit_hosts)
+    st.plotly_chart(podcasts_per_host_time_bar)
