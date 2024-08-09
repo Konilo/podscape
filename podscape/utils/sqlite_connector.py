@@ -56,4 +56,3 @@ class SqliteConnector:
                 raise ValueError("Output class 'list' is only supported for single-column queries")
         else:
             raise ValueError(f"Unsupported output class: {output_class}")
-    
