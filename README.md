@@ -20,7 +20,7 @@ I propose a fully-dockerized, VS Code development environment:
 - Open the `app/` folder, if that's not already where you are.
 - Extensions are not always mirrored from VS Code in the local OS to VS Code in the container. Reinstall the extensions you miss. The recommended python extension is mandatory.
 - Set the python interpreter as `/usr/local/bin/python`.
-- If it's the first time you set this up (or if you want to update the database): run `make etl-enrich` to fetch and prepare the database. This takes a while.
+- If it's the first time you set this up (or if you want to update the database): run `make etl-enrich` to fetch and prepare the database. This takes a while (i.e., 42 min as of 2024-08-09).
 - You're all set:
   - Launch the app using `make run-app`.
   - You can use the VS Code "Run and Debug" features.
