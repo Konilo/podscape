@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "podscape"
+version = "0.1.0"
+description = ""
+authors = ["Konilo Zio <you@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+polars = "^0.20.27"
+streamlit = "^1.37.0"
+plotly = "^5.23.0"
+feedparser = "^6.0.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,27 @@
+FROM python:3.12
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=1.8.3 python -
+
+# Include the directories where the Poetry executable might reside in the PATH env var
+ENV PATH="/root/.local/bin:/opt/poetry/bin:$PATH"
+
+# Install sqlite3
+RUN apt-get update && apt-get install --yes sqlite3
+
+# Copy the dependencies file
+# In the case of a new project without a pyproject.toml file, copy and edit a pyproject.toml from an existing project
+COPY ./pyproject.toml /app/pyproject.toml
+# Comment the line below in the case of a new project without a poetry.lock file
+COPY ./poetry.lock /app/poetry.lock
+
+# Set the working directory
+WORKDIR /app
+
+# Install the dependencies
+RUN poetry config virtualenvs.create false && poetry install
+# Use the line below in the case of a new project without a poetry.lock file
+# RUN poetry config virtualenvs.create false && poetry lock && poetry install
+
+# Copy the repo
+COPY . /app
