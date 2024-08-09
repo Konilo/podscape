@@ -5,8 +5,9 @@ An app to explore the podcasting landscape -- from details concerning a specific
 This app was made for learning purposes, with a deliberate focus on `docker`, `streamlit`, `sqlite3`, and `polars`.
 It sources its data from the [Podcast Index](https://podcastindex.org/) and directly from RSS feeds.
 
-[](readme_assets/podcast_details.png)
-[](readme_assets/creations_host_year.png)
+![Podcast Details](readme_assets/podcast_details.png)
+
+![Creations Host Year](readme_assets/creations_host_year.png)
 
 
 ## Development setup
