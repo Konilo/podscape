@@ -112,7 +112,7 @@ with landscape_tab:
     with st.expander("Options", expanded=True):
         time_unit_hosts = st.selectbox("Time unit", TIME_UNITS, 4, key="time_unit_hosts")
         start_date = st.date_input("Start", value=date(2002, 10, 1))
-        end_date = st.date_input("End", value=date(2030, 12, 31))
+        end_date = st.date_input("End", value=date.today())
     podcasts_per_host_pie = get_podcasts_per_host_pie(sqlite_connector, start_date, end_date)
     st.plotly_chart(podcasts_per_host_pie)
     podcasts_per_host_time_bar = get_podcasts_per_host_time_bar(sqlite_connector, start_date, end_date, time_unit_hosts)

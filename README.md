@@ -1,14 +1,17 @@
-# Podscape
+# :sound: Podscape
 
 An app to explore the podcasting landscape -- from details concerning a specific podcast to overall, multi-decade trends.
 
 This app was made for learning purposes, with a deliberate focus on `docker`, `streamlit`, `sqlite3`, and `polars`.
 It sources its data from the [Podcast Index](https://podcastindex.org/) and directly from RSS feeds.
 
+[](readme_assets/podcast_details.png)
+[](readme_assets/creations_host_year.png)
+
 
 ## Development setup
 
-I propose a fully-dockerized development environment:
+I propose a fully-dockerized, VS Code development environment:
 
 - If you're under Windows: run `wsl` and start Docker Desktop.
 - Run `make run-dev-env`.
