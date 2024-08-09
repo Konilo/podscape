@@ -30,7 +30,7 @@ sqlite_connector = SqliteConnector(db_file_path)
 st.title(":loud_sound: :blue[Podscape]")
 
 # Body
-details_tab, landscape_tab = st.tabs([":mag: Podcast details", ":bar_chart: Podcast landscape"])
+details_tab, landscape_tab = st.tabs([":mag: Podcast details", ":bar_chart: Podcasting landscape"])
 
 ## Podcast details tab
 with details_tab:
@@ -98,7 +98,7 @@ with details_tab:
         },
     )
 
-## Podcast landscape tab
+## Podcasting landscape tab
 with landscape_tab:
     ### Podcast creations
     st.subheader("Podcast creations")
